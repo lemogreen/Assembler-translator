@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29911.84
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembler Translator", "Assembler Translator\Assembler Translator.csproj", "{03D154BE-55D3-410A-B5CB-321B9E7D78AA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{03D154BE-55D3-410A-B5CB-321B9E7D78AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03D154BE-55D3-410A-B5CB-321B9E7D78AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03D154BE-55D3-410A-B5CB-321B9E7D78AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03D154BE-55D3-410A-B5CB-321B9E7D78AA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {376CEDC1-AFF7-4D00-9FE7-A1892A3F90C8}
+	EndGlobalSection
+EndGlobal
