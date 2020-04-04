@@ -7,7 +7,8 @@ namespace Assembler_Translator
         keyword = 10, 
         separator = 20, 
         identificator = 30, 
-        constant = 40
+        constant = 40,
+        operation = 50
     }
 
     struct TokenPosition

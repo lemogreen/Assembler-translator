@@ -14,6 +14,11 @@ namespace Assembler_Translator
         private DynamicTable dynamicTable = new DynamicTable();
         private StaticTable staticTable = new StaticTable();
 
+        enum TypeOfChar
+        {
+            separator, keywordOrIdentificator, constant, operations, wrongCharacter
+        }
+
         public List<List<Token>> generateTokens(string fileName)
         {
             var finalList = new List<List<Token>>();
@@ -52,6 +57,117 @@ namespace Assembler_Translator
                 finalList.Add(currentTokenLine);
             }
             return finalList;
+        }
+
+
+        public List<List<Token>> tokenize(string fileName)
+        {
+            var finalList = new List<List<Token>>();
+            string[] programLines = File.ReadAllLines(fileName);
+            foreach (var programLine in programLines)
+            {
+                List<Token> lineTokens = new List<Token>();
+                if (programLine.Length != 0)
+                {
+                    bool isStartOfWord = true;
+                    bool isOpenedComment = true;
+                    TypeOfChar typeOfCurrentWord = getTypeOfChar(programLine[0]);
+                    string currentWord = "";
+                    foreach (char symbol in programLine)
+                    {
+                        if (isStartOfWord)
+                        {
+                            typeOfCurrentWord = getTypeOfChar(symbol);
+                            isStartOfWord = false;
+                        }
+
+                        var typeOfCurrentChar = getTypeOfChar(symbol);
+                        
+                        switch (typeOfCurrentChar)
+                        {
+                            case TypeOfChar.separator:
+                                if (symbol == ' ')
+                                {
+                                    isStartOfWord = true;
+                                    if (currentWord.Length == 0) continue;
+
+                                    lineTokens.Add(addWord(typeOfCurrentWord, currentWord).Value);
+                                    currentWord = "";
+                                    continue;
+                                }
+                                lineTokens.Add(addWord(typeOfCurrentWord, currentWord).Value);
+                                currentWord = "";
+                                isStartOfWord = true;
+                                lineTokens.Add(addWord(TypeOfChar.separator, symbol.ToString()).Value);
+                                break;
+                            case TypeOfChar.constant:
+                                if (typeOfCurrentWord == TypeOfChar.operations)
+                                {
+                                    lineTokens.Add(addWord(typeOfCurrentWord, currentWord).Value);
+                                    currentWord = "";
+                                    currentWord += symbol;
+                                    typeOfCurrentWord = TypeOfChar.constant;
+                                }
+                                currentWord += symbol;
+                                continue;
+                            case TypeOfChar.keywordOrIdentificator:
+                                if (typeOfCurrentWord == TypeOfChar.constant)
+                                {
+                                    // todo
+                                    continue;
+                                }
+                                currentWord += symbol;
+                                break;
+                            case TypeOfChar.operations:
+                                if (typeOfCurrentWord == TypeOfChar.keywordOrIdentificator)
+                                {
+                                    lineTokens.Add(addWord(typeOfCurrentWord, currentWord).Value);
+                                    currentWord = "";
+                                    currentWord += symbol;
+                                    typeOfCurrentWord = TypeOfChar.operations;
+                                    continue;
+                                }
+                                currentWord += symbol;
+                                //lineTokens.Add(addWord(TypeOfChar.operations, symbol.ToString()).Value);
+                                break;
+                            case TypeOfChar.wrongCharacter:
+                                // todo
+                                break;
+                        }
+                    }
+                }
+                finalList.Add(lineTokens);
+            }
+            return finalList;
+        }
+
+        private Token? addWord(TypeOfChar typeOfWord, string word)
+        {
+            switch (typeOfWord)
+            {
+                case TypeOfChar.constant:
+                    var intValue = int.Parse(word);
+                    return dynamicTable.addConstant(intValue);
+                case TypeOfChar.keywordOrIdentificator:
+                    var keywordToken = staticTable.getIndexOf(word);
+                    if (keywordToken.HasValue) return keywordToken;
+                    return dynamicTable.addIdentificator(word);
+                case TypeOfChar.operations:
+                    return staticTable.getIndexOf(word);
+                case TypeOfChar.separator:
+                    return staticTable.getIndexOf(word);
+                default:
+                    return null;
+            }
+        }
+
+        private TypeOfChar getTypeOfChar(char symbol)
+        {
+            if (staticTable.separators.Contains(symbol.ToString())) return TypeOfChar.separator;
+            if (staticTable.allowedAlphabeth.Contains(symbol)) return TypeOfChar.keywordOrIdentificator;
+            if (staticTable.allowedNumbers.Contains(symbol)) return TypeOfChar.constant;
+            if (staticTable.operationsChars.Contains(symbol.ToString())) return TypeOfChar.operations;
+            return TypeOfChar.keywordOrIdentificator;
         }
     }
 }
