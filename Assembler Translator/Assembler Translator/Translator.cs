@@ -110,7 +110,12 @@ namespace Assembler_Translator
                         {
                             case TypeOfChar.separator:
                                 isStartOfWord = true;
-                                if (currentWord.Length == 0) continue;
+                                if (currentWord.Length == 0)
+                                {
+                                    var separator = addWord(TypeOfChar.separator, symbol.ToString());
+                                    if (separator.HasValue) lineTokens.Add(separator.Value);
+                                    continue;
+                                }
                                 lineTokens.Add(addWord(typeOfCurrentWord, currentWord).Value);
                                 currentWord = "";
                                 var separatorToken = addWord(TypeOfChar.separator, symbol.ToString());
@@ -183,7 +188,7 @@ namespace Assembler_Translator
             #if DEBUG
             using (StreamWriter file = new StreamWriter("tokens.txt"))
                 foreach (var tokenLine in finalList)
-                    file.WriteLine(String.Join("\n", tokenLine.ToArray()));
+                    file.WriteLine(String.Join(" ", tokenLine.ToArray()));
             using (StreamWriter file = new StreamWriter("errors.txt"))
                 foreach (var error in errorsList)
                     file.WriteLine($"{error.localizedError()}");
