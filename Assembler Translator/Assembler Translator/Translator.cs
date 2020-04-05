@@ -86,7 +86,7 @@ namespace Assembler_Translator
                         switch (typeOfCurrentChar)
                         {
                             case TypeOfChar.separator:
-                                if (symbol == ' ')
+                                if (symbol == ' ' || symbol == '\t')
                                 {
                                     isStartOfWord = true;
                                     if (currentWord.Length == 0) continue;
@@ -116,10 +116,17 @@ namespace Assembler_Translator
                                     // todo
                                     continue;
                                 }
+                                if (typeOfCurrentWord != typeOfCurrentChar)
+                                {
+                                    lineTokens.Add(addWord(typeOfCurrentWord, currentWord).Value);
+                                    currentWord = "";
+                                    currentWord += symbol;
+                                    typeOfCurrentWord = typeOfCurrentChar;
+                                }
                                 currentWord += symbol;
                                 break;
                             case TypeOfChar.operations:
-                                if (typeOfCurrentWord == TypeOfChar.keywordOrIdentificator)
+                                if (typeOfCurrentWord != typeOfCurrentChar)
                                 {
                                     lineTokens.Add(addWord(typeOfCurrentWord, currentWord).Value);
                                     currentWord = "";
@@ -163,7 +170,7 @@ namespace Assembler_Translator
 
         private TypeOfChar getTypeOfChar(char symbol)
         {
-            if (staticTable.separators.Contains(symbol.ToString())) return TypeOfChar.separator;
+            if (staticTable.separators.Contains(symbol.ToString()) || symbol == '\t') return TypeOfChar.separator;
             if (staticTable.allowedAlphabeth.Contains(symbol)) return TypeOfChar.keywordOrIdentificator;
             if (staticTable.allowedNumbers.Contains(symbol)) return TypeOfChar.constant;
             if (staticTable.operationsChars.Contains(symbol.ToString())) return TypeOfChar.operations;
