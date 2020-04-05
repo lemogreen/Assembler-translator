@@ -11,6 +11,13 @@ namespace Assembler_Translator
         operation = 50
     }
 
+    public enum TokenizeErrorType
+    {
+        forbiddenСharacter, 
+        wrongFormatOfNumber, 
+        notClosedComment
+    }
+
     struct TokenPosition
     {
         int positionInTable;
@@ -45,4 +52,46 @@ namespace Assembler_Translator
 
         public override string ToString() => $"({(int)tokenType}, {tokenPosition})";
     }
+
+    public struct TokenizeError
+    {
+        public TokenizeErrorType error;
+        public int? line;
+        public int? column;
+
+        public TokenizeError(TokenizeErrorType error, int? line, int? column)
+        {
+            this.error = error;
+            this.line = line;
+            this.column = column;
+        }
+    }
+
+    public static class TokenizeErrorExtantions
+    {
+        public static string localizedError(this TokenizeError error)
+        {
+            return $"{error.error.localizedError(error.line, error.column)}";
+        }
+    }
+
+
+    public static class TokenizeErrorTypeExtensions
+    {
+        public static string localizedError(this TokenizeErrorType error, int? line, int? column)
+        {
+            switch (error)
+            {
+                case TokenizeErrorType.forbiddenСharacter:
+                    return $"Forribden character at line {line}, column {column}";
+                case TokenizeErrorType.notClosedComment:
+                    return $"Tokenizer reaches end with not closed comment";
+                case TokenizeErrorType.wrongFormatOfNumber:
+                    return $"Using non-allowed characters in number at line {line}, column {column}";
+                default:
+                    return "";
+            }
+        }
+    }
 }
+

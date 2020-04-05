@@ -62,11 +62,14 @@ namespace Assembler_Translator
 
         public List<List<Token>> tokenize(string fileName)
         {
+            var errorsList = new List<TokenizeError>();
             var finalList = new List<List<Token>>();
             string[] programLines = File.ReadAllLines(fileName);
             bool isOpenedMultilineComment = false;
+            int lineIndex = 0;
             foreach (var programLine in programLines)
             {
+                int columnIndex = -1;
                 List<Token> lineTokens = new List<Token>();
                 if (programLine.Length != 0)
                 {
@@ -76,6 +79,7 @@ namespace Assembler_Translator
                     string currentWord = "";
                     foreach (char symbol in programLine)
                     {
+                        columnIndex++;
                         if (isOpenedComment) break; // Если обнаружено начало комментария "//" - то прекратить считывание текущей строки, тк в этом нет смысла
 
                         if (isOpenedMultilineComment)
@@ -105,19 +109,12 @@ namespace Assembler_Translator
                         switch (typeOfCurrentChar)
                         {
                             case TypeOfChar.separator:
-                                if (symbol == ' ' || symbol == '\t')
-                                {
-                                    isStartOfWord = true;
-                                    if (currentWord.Length == 0) continue;
-
-                                    lineTokens.Add(addWord(typeOfCurrentWord, currentWord).Value);
-                                    currentWord = "";
-                                    continue;
-                                }
+                                isStartOfWord = true;
+                                if (currentWord.Length == 0) continue;
                                 lineTokens.Add(addWord(typeOfCurrentWord, currentWord).Value);
                                 currentWord = "";
-                                isStartOfWord = true;
-                                lineTokens.Add(addWord(TypeOfChar.separator, symbol.ToString()).Value);
+                                var separatorToken = addWord(TypeOfChar.separator, symbol.ToString());
+                                if (separatorToken.HasValue) lineTokens.Add(separatorToken.Value);
                                 break;
                             case TypeOfChar.constant:
                                 if (typeOfCurrentWord == TypeOfChar.operations)
@@ -133,7 +130,7 @@ namespace Assembler_Translator
                             case TypeOfChar.keywordOrIdentificator:
                                 if (typeOfCurrentWord == TypeOfChar.constant)
                                 {
-                                    // todo
+                                    errorsList.Add(new TokenizeError(TokenizeErrorType.wrongFormatOfNumber, lineIndex, columnIndex));
                                     continue;
                                 }
                                 if (typeOfCurrentWord != typeOfCurrentChar)
@@ -142,6 +139,7 @@ namespace Assembler_Translator
                                     currentWord = "";
                                     currentWord += symbol;
                                     typeOfCurrentWord = typeOfCurrentChar;
+                                    continue;
                                 }
                                 currentWord += symbol;
                                 break;
@@ -172,17 +170,23 @@ namespace Assembler_Translator
                                 currentWord += symbol;
                                 break;
                             case TypeOfChar.wrongCharacter:
-                                // todo
+                                errorsList.Add(new TokenizeError(TokenizeErrorType.forbiddenСharacter, lineIndex, columnIndex));
                                 break;
                         }
                     }
                 }
                 finalList.Add(lineTokens);
+                lineIndex++;
             }
+            if (isOpenedMultilineComment)
+                errorsList.Add(new TokenizeError(TokenizeErrorType.notClosedComment, null, null));
             #if DEBUG
             using (StreamWriter file = new StreamWriter("tokens.txt"))
                 foreach (var tokenLine in finalList)
                     file.WriteLine(String.Join(" ", tokenLine.ToArray()));
+            using (StreamWriter file = new StreamWriter("errors.txt"))
+                foreach (var error in errorsList)
+                    file.WriteLine($"{error.localizedError()}");
             #endif
             return finalList;
         }
@@ -201,6 +205,7 @@ namespace Assembler_Translator
                 case TypeOfChar.operations:
                     return staticTable.getIndexOf(word);
                 case TypeOfChar.separator:
+                    if (word == " " || word == "\t") return null;
                     return staticTable.getIndexOf(word);
                 default:
                     return null;
@@ -213,7 +218,7 @@ namespace Assembler_Translator
             if (staticTable.allowedAlphabeth.Contains(symbol)) return TypeOfChar.keywordOrIdentificator;
             if (staticTable.allowedNumbers.Contains(symbol)) return TypeOfChar.constant;
             if (staticTable.operationsChars.Contains(symbol.ToString())) return TypeOfChar.operations;
-            return TypeOfChar.keywordOrIdentificator;
+            return TypeOfChar.wrongCharacter;
         }
     }
 }
