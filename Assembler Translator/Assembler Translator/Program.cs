@@ -10,7 +10,7 @@ namespace Assembler_Translator
         {
             var translator = new Translator();
             translator.generateTokens("testProgram.txt");
-            translator.tokenize("testProgram.txt");
+            translator.tokenize("testProgram1.txt");
         }
     }
 }

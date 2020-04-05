@@ -149,7 +149,7 @@ namespace Assembler_Translator
                                     lineTokens.Add(addWord(typeOfCurrentWord, currentWord).Value);
                                     currentWord = "";
                                     currentWord += symbol;
-                                    typeOfCurrentWord = TypeOfChar.operations;
+                                    typeOfCurrentWord = typeOfCurrentChar;
                                     continue;
                                 }
                                 if (currentWord == "/")
@@ -183,11 +183,17 @@ namespace Assembler_Translator
             #if DEBUG
             using (StreamWriter file = new StreamWriter("tokens.txt"))
                 foreach (var tokenLine in finalList)
-                    file.WriteLine(String.Join(" ", tokenLine.ToArray()));
+                    file.WriteLine(String.Join("\n", tokenLine.ToArray()));
             using (StreamWriter file = new StreamWriter("errors.txt"))
                 foreach (var error in errorsList)
                     file.WriteLine($"{error.localizedError()}");
-            #endif
+            foreach (var item in staticTable.keywords)
+                Console.WriteLine(item);
+            foreach (var item in staticTable.operations)
+                Console.WriteLine(item);
+            foreach (var item in staticTable.separators)
+                Console.WriteLine(item);
+#endif
             return finalList;
         }
 

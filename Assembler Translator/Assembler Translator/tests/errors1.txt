@@ -1,0 +1,1 @@
+Tokenizer reaches end with not closed comment

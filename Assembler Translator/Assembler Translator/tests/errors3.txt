@@ -1,0 +1,2 @@
+Forribden character at line 1, column 8
+Using non-allowed characters in number at line 2, column 12
