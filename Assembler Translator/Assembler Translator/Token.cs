@@ -21,6 +21,8 @@ namespace Assembler_Translator
             this.positionInTable = positionInTable;
             this.positionInRow = positionInRow;
         }
+
+        public override string ToString() => $"({positionInTable}, {positionInRow})";
     }
 
     struct Token
@@ -40,5 +42,7 @@ namespace Assembler_Translator
             this.tokenType = tokenType;
             this.tokenPosition = new TokenPosition(positionInTable, positionInRow);
         }
+
+        public override string ToString() => $"({(int)tokenType}, {tokenPosition})";
     }
 }

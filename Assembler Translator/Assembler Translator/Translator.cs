@@ -64,17 +64,36 @@ namespace Assembler_Translator
         {
             var finalList = new List<List<Token>>();
             string[] programLines = File.ReadAllLines(fileName);
+            bool isOpenedMultilineComment = false;
             foreach (var programLine in programLines)
             {
                 List<Token> lineTokens = new List<Token>();
                 if (programLine.Length != 0)
                 {
                     bool isStartOfWord = true;
-                    bool isOpenedComment = true;
+                    bool isOpenedComment = false;
                     TypeOfChar typeOfCurrentWord = getTypeOfChar(programLine[0]);
                     string currentWord = "";
                     foreach (char symbol in programLine)
                     {
+                        if (isOpenedComment) break; // Если обнаружено начало комментария "//" - то прекратить считывание текущей строки, тк в этом нет смысла
+
+                        if (isOpenedMultilineComment)
+                        {
+                            if (symbol == '*')
+                            {
+                                currentWord = symbol.ToString();
+                                continue;
+                            }
+                            if (symbol == '/' && currentWord.Length != 0)
+                            {
+                                isOpenedMultilineComment = false;
+                                currentWord = "";
+                            }
+                            currentWord = "";
+                            continue;
+                        }
+
                         if (isStartOfWord)
                         {
                             typeOfCurrentWord = getTypeOfChar(symbol);
@@ -82,7 +101,7 @@ namespace Assembler_Translator
                         }
 
                         var typeOfCurrentChar = getTypeOfChar(symbol);
-                        
+
                         switch (typeOfCurrentChar)
                         {
                             case TypeOfChar.separator:
@@ -107,6 +126,7 @@ namespace Assembler_Translator
                                     currentWord = "";
                                     currentWord += symbol;
                                     typeOfCurrentWord = TypeOfChar.constant;
+                                    continue;
                                 }
                                 currentWord += symbol;
                                 continue;
@@ -134,8 +154,22 @@ namespace Assembler_Translator
                                     typeOfCurrentWord = TypeOfChar.operations;
                                     continue;
                                 }
+                                if (currentWord == "/")
+                                {
+                                    if (symbol == '/')
+                                    {
+                                        isOpenedComment = true;
+                                        currentWord = "";
+                                        break;
+                                    }
+                                    if (symbol == '*')
+                                    {
+                                        isOpenedMultilineComment = true;
+                                        currentWord = "";
+                                        break;
+                                    }
+                                }
                                 currentWord += symbol;
-                                //lineTokens.Add(addWord(TypeOfChar.operations, symbol.ToString()).Value);
                                 break;
                             case TypeOfChar.wrongCharacter:
                                 // todo
@@ -145,6 +179,11 @@ namespace Assembler_Translator
                 }
                 finalList.Add(lineTokens);
             }
+            #if DEBUG
+            using (StreamWriter file = new StreamWriter("tokens.txt"))
+                foreach (var tokenLine in finalList)
+                    file.WriteLine(String.Join(" ", tokenLine.ToArray()));
+            #endif
             return finalList;
         }
 
